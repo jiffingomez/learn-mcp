@@ -4,7 +4,7 @@ MCP Chat is a command-line interface application that enables interactive chat c
 
 ## Prerequisites
 
-- Python 3.9+
+- **Python 3.12+** (Python 3.11 is not supported — see [Troubleshooting](#troubleshooting))
 - Anthropic API Key
 
 ## Setup
@@ -29,12 +29,15 @@ ANTHROPIC_API_KEY=""  # Enter your Anthropic API secret key
 pip install uv
 ```
 
-2. Create and activate a virtual environment:
+2. Create and activate a virtual environment, **explicitly targeting Python 3.12**:
 
 ```bash
-uv venv
+uv venv --python 3.12
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
+
+> **Note:** A `.python-version` file is included in the project that pins the version to `3.12`.
+> This ensures `uv` always picks the correct interpreter automatically.
 
 3. Install dependencies:
 
@@ -50,17 +53,17 @@ uv run main.py
 
 #### Option 2: Setup without uv
 
-1. Create and activate a virtual environment:
+1. Create and activate a virtual environment using Python 3.12 explicitly:
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
 2. Install dependencies:
 
 ```bash
-pip install anthropic python-dotenv prompt-toolkit "mcp[cli]==1.8.0"
+pip install anthropic python-dotenv prompt-toolkit "mcp[cli]>=1.8.0"
 ```
 
 3. Run the project
@@ -92,6 +95,44 @@ Use the / prefix to execute commands defined in the MCP server:
 ```
 
 Commands will auto-complete when you press Tab.
+
+## Troubleshooting
+
+### `ImportError: libssl.so.1.1: cannot open shared object file`
+
+**Symptom:**
+
+```
+ImportError: libssl.so.1.1: cannot open shared object file: No such file or directory
+```
+
+**Cause:**
+
+This error occurs when `uv` (or any tool) picks up **Python 3.11.0** compiled against OpenSSL 1.1.x
+(usually located at `/usr/local/bin/python3`), but your system only ships OpenSSL 3.x.
+If you have multiple Python versions installed, `uv` may resolve to this broken interpreter.
+
+**Fix:**
+
+Always specify Python 3.12 explicitly:
+
+```bash
+# Remove any existing broken venv
+rm -rf .venv
+
+# Re-create with the correct Python version
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -e .
+```
+
+Alternatively, verify which interpreter uv is using:
+
+```bash
+uv python list
+```
+
+Make sure the interpreter for `3.12` points to `/usr/bin/python3.12` (not `/usr/local/bin/python3`).
 
 ## Development
 
