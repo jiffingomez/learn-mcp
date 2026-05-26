@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Playwright MCP Demo</title>
+    <style>
+      /* ── Reset & Base ── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem;
+      }
+
+      /* ── Header ── */
+      header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+
+      header h1 {
+        font-size: 2.4rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6366f1, #22d3ee);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      header p {
+        margin-top: 0.5rem;
+        color: #94a3b8;
+        font-size: 1rem;
+      }
+
+      /* ── Layout ── */
+      .container {
+        width: 100%;
+        max-width: 860px;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      /* ── Card ── */
+      .card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 14px;
+        padding: 1.75rem;
+      }
+
+      .card h2 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* ── Counter Section ── */
+      .counter-row {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        cursor: pointer;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        padding: 0.55rem 1.4rem;
+        transition: filter 0.15s, transform 0.1s;
+      }
+
+      .btn:hover {
+        filter: brightness(1.15);
+      }
+
+      .btn:active {
+        transform: scale(0.96);
+      }
+
+      #btn-decrement {
+        background: #ef4444;
+        color: #fff;
+      }
+
+      #btn-increment {
+        background: #22c55e;
+        color: #fff;
+      }
+
+      #btn-reset {
+        background: #475569;
+        color: #fff;
+      }
+
+      #counter-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        min-width: 3rem;
+        text-align: center;
+        color: #f1f5f9;
+      }
+
+      /* ── Todo Section ── */
+      .todo-input-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      #todo-input {
+        flex: 1;
+        background: #0f172a;
+        border: 1px solid #475569;
+        border-radius: 8px;
+        color: #f1f5f9;
+        font-size: 0.95rem;
+        padding: 0.55rem 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+
+      #todo-input:focus {
+        border-color: #6366f1;
+      }
+
+      #btn-add-todo {
+        background: #6366f1;
+        color: #fff;
+        white-space: nowrap;
+      }
+
+      #todo-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      #todo-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.95rem;
+        transition: opacity 0.2s;
+      }
+
+      #todo-list li.done {
+        opacity: 0.45;
+        text-decoration: line-through;
+      }
+
+      #todo-list li input[type="checkbox"] {
+        accent-color: #22d3ee;
+        width: 1.1rem;
+        height: 1.1rem;
+        cursor: pointer;
+      }
+
+      .todo-delete {
+        margin-left: auto;
+        background: transparent;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 0.1rem 0.3rem;
+        border-radius: 4px;
+        transition: background 0.15s;
+      }
+
+      .todo-delete:hover {
+        background: rgba(239, 68, 68, 0.15);
+      }
+
+      /* ── Color Picker ── */
+      .color-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      #color-input {
+        width: 3rem;
+        height: 3rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: transparent;
+        padding: 0;
+      }
+
+      #color-preview {
+        flex: 1;
+        height: 3rem;
+        border-radius: 8px;
+        transition: background 0.25s;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #0f172a;
+      }
+
+      /* ── Form Section ── */
+      form#demo-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .form-group label {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        font-weight: 500;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        background: #0f172a;
+        border: 1px solid #475569;
+        border-radius: 8px;
+        color: #f1f5f9;
+        font-size: 0.95rem;
+        padding: 0.55rem 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+        font-family: inherit;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: #6366f1;
+      }
+
+      .form-group select option {
+        background: #1e293b;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      #btn-submit {
+        background: linear-gradient(135deg, #6366f1, #22d3ee);
+        color: #fff;
+        align-self: flex-start;
+        padding: 0.6rem 1.8rem;
+      }
+
+      #form-result {
+        margin-top: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: none;
+      }
+
+      #form-result.success {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid #22c55e;
+        color: #86efac;
+        display: block;
+      }
+
+      /* ── Status Bar ── */
+      #status-bar {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #475569;
+        padding-top: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🎭 Playwright MCP Demo</h1>
+      <p>A sandbox page to explore Playwright MCP capabilities</p>
+    </header>
+
+    <div class="container">
+      <!-- ── Counter ── -->
+      <section class="card" aria-label="Counter widget">
+        <h2>🔢 Counter</h2>
+        <div class="counter-row">
+          <button id="btn-decrement" class="btn" aria-label="Decrement">−</button>
+          <span id="counter-value" role="status" aria-live="polite">0</span>
+          <button id="btn-increment" class="btn" aria-label="Increment">+</button>
+          <button id="btn-reset" class="btn" aria-label="Reset">Reset</button>
+        </div>
+      </section>
+
+      <!-- ── Todo List ── -->
+      <section class="card" aria-label="Todo list">
+        <h2>✅ Todo List</h2>
+        <div class="todo-input-row">
+          <input
+            type="text"
+            id="todo-input"
+            placeholder="Add a new task…"
+            aria-label="New task input"
+          />
+          <button id="btn-add-todo" class="btn" aria-label="Add task">Add Task</button>
+        </div>
+        <ul id="todo-list" aria-label="Task list"></ul>
+      </section>
+
+      <!-- ── Color Picker ── -->
+      <section class="card" aria-label="Color picker">
+        <h2>🎨 Color Picker</h2>
+        <div class="color-row">
+          <input type="color" id="color-input" value="#6366f1" aria-label="Pick a colour" />
+          <div id="color-preview" style="background: #6366f1">#6366f1</div>
+        </div>
+      </section>
+
+      <!-- ── Contact Form ── -->
+      <section class="card" aria-label="Contact form">
+        <h2>📋 Contact Form</h2>
+        <form id="demo-form" novalidate>
+          <div class="form-group">
+            <label for="field-name">Full Name</label>
+            <input type="text" id="field-name" placeholder="Jane Doe" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="field-email">Email Address</label>
+            <input type="email" id="field-email" placeholder="jane@example.com" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="field-role">Role</label>
+            <select id="field-role">
+              <option value="">Select a role…</option>
+              <option value="developer">Developer</option>
+              <option value="designer">Designer</option>
+              <option value="qa">QA Engineer</option>
+              <option value="manager">Product Manager</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="field-message">Message</label>
+            <textarea id="field-message" placeholder="Your message here…"></textarea>
+          </div>
+          <button type="submit" id="btn-submit" class="btn">Submit →</button>
+          <div id="form-result"></div>
+        </form>
+      </section>
+    </div>
+
+    <p id="status-bar">Page loaded · <span id="ts"></span></p>
+
+    <script>
+      // ── Timestamp ──
+      document.getElementById("ts").textContent = new Date().toLocaleTimeString();
+
+      // ── Counter ──
+      let count = 0;
+      const counterEl = document.getElementById("counter-value");
+
+      function updateCounter(val) {
+        count = val;
+        counterEl.textContent = count;
+        counterEl.style.color = count > 0 ? "#86efac" : count < 0 ? "#fca5a5" : "#f1f5f9";
+      }
+
+      document.getElementById("btn-increment").addEventListener("click", () => updateCounter(count + 1));
+      document.getElementById("btn-decrement").addEventListener("click", () => updateCounter(count - 1));
+      document.getElementById("btn-reset").addEventListener("click", () => updateCounter(0));
+
+      // ── Todo List ──
+      let todos = [];
+      const todoList = document.getElementById("todo-list");
+      const todoInput = document.getElementById("todo-input");
+
+      function renderTodos() {
+        todoList.innerHTML = "";
+        todos.forEach((todo, i) => {
+          const li = document.createElement("li");
+          li.className = todo.done ? "done" : "";
+          li.dataset.id = i;
+
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = todo.done;
+          cb.setAttribute("aria-label", `Mark "${todo.text}" as done`);
+          cb.addEventListener("change", () => {
+            todos[i].done = cb.checked;
+            renderTodos();
+          });
+
+          const span = document.createElement("span");
+          span.textContent = todo.text;
+
+          const del = document.createElement("button");
+          del.className = "todo-delete";
+          del.textContent = "✕";
+          del.setAttribute("aria-label", `Delete "${todo.text}"`);
+          del.addEventListener("click", () => {
+            todos.splice(i, 1);
+            renderTodos();
+          });
+
+          li.append(cb, span, del);
+          todoList.appendChild(li);
+        });
+      }
+
+      function addTodo() {
+        const text = todoInput.value.trim();
+        if (!text) return;
+        todos.push({ text, done: false });
+        todoInput.value = "";
+        renderTodos();
+      }
+
+      document.getElementById("btn-add-todo").addEventListener("click", addTodo);
+      todoInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addTodo();
+      });
+
+      // seed a couple of items
+      todos = [
+        { text: "Open the page with Playwright MCP", done: true },
+        { text: "Take a screenshot", done: false },
+        { text: "Fill the contact form", done: false },
+      ];
+      renderTodos();
+
+      // ── Color Picker ──
+      const colorInput = document.getElementById("color-input");
+      const colorPreview = document.getElementById("color-preview");
+
+      colorInput.addEventListener("input", () => {
+        const hex = colorInput.value;
+        colorPreview.style.background = hex;
+        colorPreview.textContent = hex;
+      });
+
+      // ── Contact Form ──
+      document.getElementById("demo-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("field-name").value.trim();
+        const email = document.getElementById("field-email").value.trim();
+        const role = document.getElementById("field-role").value;
+
+        const result = document.getElementById("form-result");
+
+        if (!name || !email || !role) {
+          result.className = "";
+          result.style.display = "block";
+          result.style.background = "rgba(239,68,68,0.15)";
+          result.style.border = "1px solid #ef4444";
+          result.style.color = "#fca5a5";
+          result.textContent = "⚠️ Please fill in Name, Email, and Role.";
+          return;
+        }
+
+        result.className = "success";
+        result.textContent = `✅ Thanks, ${name}! We'll reach you at ${email}.`;
+        e.target.reset();
+      });
+    </script>
+  </body>
+</html>
